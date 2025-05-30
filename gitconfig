@@ -1,0 +1,33 @@
+[user]
+    name = Adam
+    email = 73994535+adamtuft@users.noreply.github.com
+    name = Adam
+[http]
+    postBuffer = 1048576000
+[alias]
+    lg = log --color --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an, %cr>%Creset %C(yellow)%d%Creset %s' --abbrev-commit
+    c = checkout
+    vis = !gitk
+    fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 | xargs -I{} git restore $@ {}; } && f"
+    fixup = "!f() { git --no-pager log -n 50 --pretty=format:'%h %s' | fzf --height 20 --layout reverse --accept-nth 1 | xargs -o git commit --fixup; } && f"
+    frbi = "!f() { git --no-pager log --all --decorate --oneline --graph | fzf --ansi --height 20 --reverse | sed -nr 's/^[ /\\\\_|*]+([a-z0-9]+)\\ .*$/\\1/p' | xargs -o -I{} git rebase -i $@ {}^ ; } && f"
+[filter "lfs"]
+    process = git-lfs filter-process
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+[pager]
+    branch = false
+    log = bat -S
+[core]
+    pager = bat -S
+    editor = vim
+[color]
+    ui = always
+    diff = auto
+[pull]
+    rebase = false
+[push]
+    autoSetupRemote = true
+[init]
+    defaultBranch = main
