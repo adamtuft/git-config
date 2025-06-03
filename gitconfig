@@ -11,6 +11,9 @@
     fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 | xargs -I{} git restore $@ {}; } && f"
     fixup = "!f() { git --no-pager log -n 50 --pretty=format:'%h %s' | fzf --height 20 --layout reverse --accept-nth 1 | xargs -o git commit --fixup; } && f"
     frbi = "!f() { git --no-pager log --all --decorate --oneline --graph | fzf --ansi --height 20 --reverse | sed -nr 's/^[ /\\\\_|*]+([a-z0-9]+)\\ .*$/\\1/p' | xargs -o -I{} git rebase -i $@ {}^ ; } && f"
+	f = fetch
+	d = diff
+	ds = diff --staged
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
