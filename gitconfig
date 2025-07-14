@@ -24,6 +24,7 @@
 	ctypes = "!f() { sed 's/ /\\n/g' <<< 'build ci chore docs feat fix perf refactor revert style test'; } && f"
     # Fuzzily choose the commit type
     fctype = "!f() { git ctypes | fzf --reverse --height 15 --prompt 'Type: '; } && f"
+	au = add -u
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
