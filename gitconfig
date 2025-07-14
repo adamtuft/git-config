@@ -6,7 +6,8 @@
     postBuffer = 1048576000
 [alias]
     al = config --get-regexp '^alias\\.'
-    c = commit
+    c = "!f() { COMMIT_TYPE=$(git fctype); read -p \"description (imperative summary) up to: #\n > \" COMMIT_DESC; git commit -t <(envsubst < ~/.gitmessage.template); } && f"
+    co = checkout
     d = diff
     ds = diff --staged
     f = fetch
@@ -15,7 +16,14 @@
     frbi = "!f() { git --no-pager log --all --decorate --oneline --graph | fzf --ansi --height 20 --reverse | sed -nr 's/^[ /\\\\_|*]+([a-z0-9]+)\\ .*$/\\1/p' | xargs -o -I{} git rebase -i $@ {}^ ; } && f"
     fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 | xargs -I{} git restore $@ {}; } && f"
     lg = log --color --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an, %cr>%Creset %C(yellow)%d%Creset %s' --abbrev-commit
+    l = "!f() { git log -${1:-1} HEAD; } && f"
+    p = pull
+    s = status
     vis = !gitk
+    # Prints the commits types we want to use in commit messages.
+	ctypes = "!f() { sed 's/ /\\n/g' <<< 'build ci chore docs feat fix perf refactor revert style test'; } && f"
+    # Fuzzily choose the commit type
+    fctype = "!f() { git ctypes | fzf --reverse --height 15 --prompt 'Type: '; } && f"
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
@@ -36,3 +44,8 @@
     autoSetupRemote = true
 [init]
     defaultBranch = main
+[commit]
+	verbose = true
+	types = John Doe
+[foo]
+	bar = John Doe
