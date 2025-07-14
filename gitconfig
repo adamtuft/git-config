@@ -6,7 +6,7 @@
     postBuffer = 1048576000
 [alias]
     al = config --get-regexp '^alias\\.'
-    c = "!f() { COMMIT_TYPE=$(git fctype); read -p \"description (imperative summary) up to: #\n > \" COMMIT_DESC; git commit -t <(envsubst < ~/.gitmessage.template); } && f"
+    c = "!f() { COMMIT_TYPE=$(git fctype); read -p \"description (imperative summary) up to: #\n > \" COMMIT_DESC; export COMMIT_TYPE COMMIT_DESC;git commit -t <(envsubst < ~/.gitmessage.template); } && f"
     co = checkout
     d = diff
     ds = diff --staged
