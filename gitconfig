@@ -16,7 +16,7 @@
     # Interactive rebase since a fuzzily-chosen commit
     frbi = "!f() { git --no-pager log --all --decorate --oneline --graph | fzf --ansi --height 20 --reverse | sed -nr 's/^[ /\\\\_|*]+([a-z0-9]+)\\ .*$/\\1/p' | xargs -o -I{} git rebase -i $@ {}^ ; } && f"
     # Restore a fuzzily-chosen file
-    fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 | xargs -I{} git restore $@ {}; } && f"
+    fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 --prompt '"git restore <file>" ' | xargs -I{} git restore $@ {}; } && f"
     lg = log --color --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an, %cr>%Creset %C(yellow)%d%Creset %s' --abbrev-commit
     l = "!f() { git log -${1:-1} HEAD; } && f"
     p = push
@@ -27,6 +27,8 @@
     # Fuzzily choose the commit type
     fctype = "!f() { git ctypes | fzf --reverse --height 15 --prompt 'Type: '; } && f"
 	au = add -u
+    trim = "!f() { git remote | fzf --reverse --height 5 --prompt '"git remote prune <remote>" ' | xargs -I{} git remote prune {} $@ ; } && f"
+    rtrim = "!f() { R=\"$(git remote | fzf --reverse --height 5 --prompt '"git push <remote?> --delete <branch>" ')\"; B=\"$(git ls-remote --branches origin | awk '{print $2}' | sed 's,refs/heads/,,' | fzf --reverse --height 5 --prompt \"git push $R --delete <branch?>: \")\"; git push \"$R\" --delete \"$B\" ; } && f"
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
