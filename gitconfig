@@ -1,23 +1,25 @@
 [user]
     name = Adam
     email = 73994535+adamtuft@users.noreply.github.com
-    name = Adam
-[http]
-    postBuffer = 1048576000
 [alias]
-    al = config --get-regexp '^alias\\.'
+    # List aliases with optional filter
+    al = "!f() { git config --get-regexp \"^alias\\.${1:-}\"; } && f "
+    # Interactively commit with one of a set of commit types
     c = "!f() { COMMIT_TYPE=$(git fctype); read -p \"commit type: ${COMMIT_TYPE}\n\ndescription (imperative summary) up to: #\n > \" COMMIT_DESC; export COMMIT_TYPE COMMIT_DESC;git commit -t <(envsubst < ~/.gitmessage.template); } && f"
     co = checkout
     d = diff
     ds = diff --staged
     f = fetch
     fa = "!f() { git status --porcelain=v2 | grep \"^1 .M\" | awk \"{ print \\$9 }\" | fzf --reverse --height 10 --multi | xargs git add; } && f"
+    # Fuzzily create a fixup commit
     fixup = "!f() { git --no-pager log -n 50 --pretty=format:'%h %s' | fzf --height 20 --layout reverse --accept-nth 1 | xargs -o git commit --fixup; } && f"
+    # Interactive rebase since a fuzzily-chosen commit
     frbi = "!f() { git --no-pager log --all --decorate --oneline --graph | fzf --ansi --height 20 --reverse | sed -nr 's/^[ /\\\\_|*]+([a-z0-9]+)\\ .*$/\\1/p' | xargs -o -I{} git rebase -i $@ {}^ ; } && f"
+    # Restore a fuzzily-chosen file
     fundo = "!f() { git --no-pager diff --name-only $@ | fzf --height=~10 | xargs -I{} git restore $@ {}; } && f"
     lg = log --color --graph --pretty=format:'%Cred%h%Creset %C(bold blue)<%an, %cr>%Creset %C(yellow)%d%Creset %s' --abbrev-commit
     l = "!f() { git log -${1:-1} HEAD; } && f"
-    p = pull
+    p = push
     s = status
     vis = !gitk
     # Prints the commits types we want to use in commit messages.
@@ -30,6 +32,12 @@
     required = true
     clean = git-lfs clean -- %f
     smudge = git-lfs smudge -- %f
+[merge]
+    conflictStyle = zdiff3
+[rebase]
+    autosquash = true
+[diff]
+    colorMoved = true
 [pager]
     branch = false
     log = bat -S
@@ -39,14 +47,9 @@
 [color]
     ui = always
     diff = auto
-[pull]
-    rebase = false
 [push]
     autoSetupRemote = true
 [init]
     defaultBranch = main
 [commit]
 	verbose = true
-	types = John Doe
-[foo]
-	bar = John Doe
