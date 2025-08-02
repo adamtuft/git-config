@@ -29,6 +29,7 @@
 	au = add -u
     trim = "!f() { git remote | fzf --reverse --height 5 --prompt '"git remote prune <remote>" ' | xargs -I{} git remote prune {} $@ ; } && f"
     rtrim = "!f() { R=\"$(git remote | fzf --reverse --height 5 --prompt '"git push <remote?> --delete <branch>" ')\"; B=\"$(git ls-remote --branches origin | awk '{print $2}' | sed 's,refs/heads/,,' | fzf --reverse --height 5 --prompt \"git push $R --delete <branch?>: \")\"; git push \"$R\" --delete \"$B\" ; } && f"
+    upstream = "!f() { git for-each-ref --format='%(upstream:short)' \"$(git symbolic-ref -q HEAD)\"; } && f"
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
