@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+# Fuzzily rebase
+
+rebase_after="$(git --no-pager log --all --decorate --oneline --graph \
+    | fzf --ansi --height 20 --reverse --prompt "Rebase after: " \
+    | sed -nr 's/^[ /\\_|*]+([a-z0-9]+)\ .*$/\1/p'\
+)"
+
+if [[ -n "$rebase_after" ]]; then
+    git rebase -i $@ "$rebase_after"
+fi

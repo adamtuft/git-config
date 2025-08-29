@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+remote="$(git remote | fzf --reverse --height 5 --prompt 'Delete branch(es) from remote: ')"
+if [[ -n "$remote" ]]; then
+    branches="$(git ls-remote --branches "$remote" \
+        | awk '{print $2}' \
+        | sed 's,refs/heads/,,' \
+        | fzf --reverse --height 5 --multi --prompt 'Branch(es): ' \
+        | tr -s '\n' ' ' \
+    )"
+fi
+if [[ -n "$branches" ]]; then
+    git push "$remote" --delete $branches
+fi

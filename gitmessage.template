@@ -1,6 +1,6 @@
 # Description: Summary, imperative, don't end with a period
-# e.g. "fix segfault when it's raining on a Sunday"
-# No more than 50 chars. #### 50 chars is here:  #
+# e.g. "fix segfault when reading config"
+# No more than 50 chars, which is here --------> #
 # <type>[!][(optional scope in parens)]: <description>
 ${COMMIT_TYPE}: ${COMMIT_DESC}
 
@@ -8,7 +8,7 @@ ${COMMIT_TYPE}: ${COMMIT_DESC}
 
 # Body: *what* and *why* (not *how*)
 # Remember blank line between title and body.
-# Wrap at 72 chars. ################################## which is here:  #
+# Wrap at 72 chars, which is here ---------------------------------->  #
 # https://www.conventionalcommits.org/en/v1.0.0/
 
 # Optional footer e.g. "BREAKS: "

@@ -1,0 +1,4 @@
+#! /usr/bin/env bash
+
+remote="$(git remote | fzf --reverse --height 5 --prompt '"Delete stale refs for remote: " ')"
+git remote prune "$remote" $@

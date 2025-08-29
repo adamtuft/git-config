@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+# Fuzzily create a fixup commit, to be squashed later
+
+target_commit="$(git --no-pager log -n 50 --pretty=format:'%h %s' | fzf --height 20 --layout reverse --accept-nth 1 --prompt 'Fixup commit: ')"
+
+if [[ -n "$target_commit" ]]; then
+    git commit --fixup "$target_commit" $@
+fi

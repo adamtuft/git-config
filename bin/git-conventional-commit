@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+
+# Form a commit message as a conventional commit. Requires a commit type and description
+
+commit_types=(build ci chore docs feat fix perf refactor revert style test)
+
+__choose_commit_type() {
+    printf "%s\n" "${commit_types[@]}" | fzf --reverse --height 15 --prompt 'Commit type: '
+}
+
+if [[ ! -f ~/.gitmessage.template ]]; then
+    echo "Expected gitmessage.template found at ~/.gitmessage.template"
+    exit 1
+fi
+
+COMMIT_TYPE="$(__choose_commit_type)"
+
+if [[ -z "$COMMIT_TYPE" ]]; then
+    printf "Commit type must be one of:\n${commit_types[*]}\n"
+    exit 2
+fi
+
+read -p "commit type: ${COMMIT_TYPE:-(empty)}
+
+# No more than 50 chars, which is here -----------> #
+ > " COMMIT_DESC
+
+if [[ -z "$COMMIT_DESC" ]]; then
+    printf "Commit description must be provided\n"
+    exit 2
+fi
+
+export COMMIT_TYPE COMMIT_DESC
+git commit -t <(envsubst < ~/.gitmessage.template) $@
