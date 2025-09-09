@@ -37,7 +37,7 @@
     log = bat -S
 [core]
     pager = bat -S
-    editor = vim
+    editor = nvim
 [color]
     ui = always
     diff = auto
