@@ -19,7 +19,7 @@
     p = push
     s = status
     vis = !gitk
-	au = add -u
+    au = add -u
     upstream = "!f() { git for-each-ref --format='%(upstream:short)' \"$(git symbolic-ref -q HEAD)\"; } && f"
 [filter "lfs"]
     process = git-lfs filter-process
@@ -36,7 +36,7 @@
     branch = false
     log = bat -S
 [core]
-    pager = bat -S
+    pager = delta
     editor = nvim
 [color]
     ui = always
@@ -46,4 +46,8 @@
 [init]
     defaultBranch = main
 [commit]
-	verbose = true
+    verbose = true
+[interactive]
+    diffFilter = delta --color-only
+[delta]
+    navigate = true
