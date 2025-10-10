@@ -32,6 +32,7 @@
     autosquash = true
 [diff]
     colorMoved = true
+    submodule = log
 [pager]
     branch = false
     log = bat -S
