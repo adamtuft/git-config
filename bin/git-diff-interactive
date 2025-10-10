@@ -11,9 +11,10 @@ filter="$(git config --global interactive.difffilter)"
 git diff --relative --name-only HEAD \
     | fzf --preview "git diff --color=always HEAD -- {1} | ${filter:-less -R}" \
         --reverse \
+        --multi \
         --preview-window=right,75%,wrap \
         --style full \
-        --bind 'enter:execute(nvim {})' \
+        --bind 'ctrl-e:execute(nvim {})' \
         --bind 'f5:reload(git diff --relative --name-only HEAD)' \
         --bind 'result:transform-list-label:
         if [[ -z $FZF_QUERY ]]; then
@@ -24,10 +25,10 @@ git diff --relative --name-only HEAD \
         --bind 'focus:transform-header:git diff --color=always --stat HEAD -- {} || echo "No file selected"' \
         --bind "focus:+transform-preview-label:[[ -n {} ]] && printf ' Changes vs. HEAD ($head) '" \
         --border \
-        --border-label " Staged and unstaged changes in ${repo} " \
+        --border-label " Staged and unstaged changes in ${repo} (<ctrl+e>: edit, <f5>: refresh)" \
         --padding 1,0 \
         --header-label ' Git diff stats ' \
-        --input-label ' Choose file (<enter>: edit in nvim, <f5>: refresh list)' \
+        --input-label ' Choose file ' \
         --color 'border:#aaaaaa,label:#cccccc' \
         --color 'preview-border:#9999cc,preview-label:#ccccff' \
         --color 'list-border:#669966,list-label:#99cc99' \
