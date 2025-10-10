@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-git log --color=always --format="format:%Cgreen%h%Creset %C(Yellow)%s%Creset" $@ \
+git log --color=always --format="format:%Cgreen%h%Creset %C(Yellow)%d%Creset %s" $@ \
     | fzf \
         --ansi \
         --preview 'git show --color=always {1}' \
