@@ -6,7 +6,7 @@
     al = "!f() { git config --get-regexp \"^alias\\.${1:-}\"; } && f "
     c = "!f() { git conventional-commit $@ ; } && f"
     co = checkout
-    d = diff
+    d = diff-interactive
     ds = diff --staged
     f = fetch
     fa = "!f() { git status --porcelain=v2 | grep \"^1 .M\" | awk \"{ print \\$9 }\" | fzf --reverse --height 10 --multi | xargs git add; } && f"
@@ -48,6 +48,6 @@
 [commit]
     verbose = true
 [interactive]
-    diffFilter = delta --color-only
+    diffFilter = delta
 [delta]
     navigate = true

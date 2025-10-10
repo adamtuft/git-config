@@ -1,0 +1,36 @@
+#! /usr/bin/env bash
+
+# Interactively view changed files, both staged and unstaged,
+# with fzf's preview. Use <enter> to edit a file in nvim, and
+# <f5> to refresh the list and preview
+
+repo="$(git rev-parse --show-toplevel)"
+head="$(git rev-parse HEAD)"
+filter="$(git config --global interactive.difffilter)"
+
+git diff --relative --name-only HEAD \
+    | fzf --preview "git diff --color=always HEAD -- {1} | ${filter:-less -R}" \
+        --reverse \
+        --preview-window=right,75%,wrap \
+        --style full \
+        --bind 'enter:execute(nvim {})' \
+        --bind 'f5:reload(git diff --relative --name-only HEAD)' \
+        --bind 'result:transform-list-label:
+        if [[ -z $FZF_QUERY ]]; then
+          echo " $FZF_MATCH_COUNT items "
+        else
+          echo " $FZF_MATCH_COUNT matches for [$FZF_QUERY] "
+        fi' \
+        --bind 'focus:transform-header:git diff --color=always --stat HEAD -- {} || echo "No file selected"' \
+        --bind "focus:+transform-preview-label:[[ -n {} ]] && printf ' Changes vs. HEAD ($head) '" \
+        --border \
+        --border-label " Staged and unstaged changes in ${repo} " \
+        --padding 1,0 \
+        --header-label ' Git diff stats ' \
+        --input-label ' Choose file (<enter>: edit in nvim, <f5>: refresh list)' \
+        --color 'border:#aaaaaa,label:#cccccc' \
+        --color 'preview-border:#9999cc,preview-label:#ccccff' \
+        --color 'list-border:#669966,list-label:#99cc99' \
+        --color 'input-border:#996666,input-label:#ffcccc' \
+        --color 'header-border:#6699cc,header-label:#99ccff'
+
