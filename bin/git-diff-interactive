@@ -22,16 +22,17 @@ git diff --relative --name-only HEAD \
         else
           echo " $FZF_MATCH_COUNT matches for [$FZF_QUERY] "
         fi' \
-        --bind 'focus:transform-header:git diff --color=always --stat HEAD -- {} || echo "No file selected"' \
+        --bind 'focus:transform-footer:git diff --color=always --stat HEAD -- {} | tail -n1 | cut -d, -f 2- || echo "No file selected"' \
         --bind "focus:+transform-preview-label:[[ -n {} ]] && printf ' Changes vs. HEAD ($head) '" \
         --border \
-        --border-label " Staged and unstaged changes in ${repo} (<ctrl+e>: edit, <f5>: refresh)" \
-        --padding 1,0 \
-        --header-label ' Git diff stats ' \
+        --border-label " Staged and unstaged changes in ${repo} (<ctrl+e>: edit, <f5>: refresh) " \
+        --padding 0 \
+        --footer-label " File Stats " \
         --input-label ' Choose file ' \
         --color 'border:#aaaaaa,label:#cccccc' \
         --color 'preview-border:#9999cc,preview-label:#ccccff' \
         --color 'list-border:#669966,list-label:#99cc99' \
         --color 'input-border:#996666,input-label:#ffcccc' \
-        --color 'header-border:#6699cc,header-label:#99ccff'
+        --color 'footer-border:#6699cc,footer-label:#99ccff'
+
 

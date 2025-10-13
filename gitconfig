@@ -3,6 +3,7 @@
     email = 73994535+adamtuft@users.noreply.github.com
 [alias]
     # List aliases with optional filter
+    a = "!f() { git diff-interactive | xargs git add && git status || :; } && f"
     al = "!f() { git config --get-regexp \"^alias\\.${1:-}\"; } && f "
     c = "!f() { git conventional-commit $@ ; } && f"
     co = checkout
