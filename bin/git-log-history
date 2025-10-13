@@ -1,14 +1,15 @@
 #! /usr/bin/env bash
 
-git log --color=always --format="format:%Cgreen%h%Creset %C(Yellow)%d%Creset %s" $@ \
+git log --color=always --format="format:%Cgreen%h%Creset %C(Yellow)%d%Creset %s" "$@" \
     | fzf \
         --ansi \
+        --wrap \
         --preview 'git show --color=always {1}' \
         --preview-window=right,70%,wrap \
-        --header-border=rounded \
-        --bind "focus:transform-header(git diff-tree --no-commit-id --name-only {1} -r | head -n 30)" \
-        --bind "focus:+transform-header-label(git diff-tree --no-commit-id --name-only {1} -r | wc -l | xargs printf ' %d files ')" \
-        --layout=reverse-list \
+        --footer-border=rounded \
+        --bind "focus:transform-footer(git diff-tree --no-commit-id --name-only {1} -r | head -n 30)" \
+        --bind "focus:+transform-footer-label(git diff-tree --no-commit-id --name-only {1} -r | wc -l | xargs printf ' %d files ')" \
+        --layout=reverse \
         --accept-nth=1 \
         --multi
 
