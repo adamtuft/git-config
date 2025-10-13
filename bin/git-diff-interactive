@@ -7,6 +7,7 @@
 repo="$(git rev-parse --show-toplevel)"
 head="$(git rev-parse HEAD)"
 filter="$(git config --global interactive.difffilter)"
+git_action_label="${1:-Staged and unstaged changes}"
 
 git diff --relative --name-only HEAD \
     | fzf --preview "git diff --color=always HEAD -- {1} | ${filter:-less -R}" \
@@ -25,7 +26,7 @@ git diff --relative --name-only HEAD \
         --bind 'focus:transform-footer:git diff --color=always --stat HEAD -- {} | tail -n1 | cut -d, -f 2- || echo "No file selected"' \
         --bind "focus:+transform-preview-label:[[ -n {} ]] && printf ' Changes vs. HEAD ($head) '" \
         --border \
-        --border-label " Staged and unstaged changes in ${repo} (<ctrl+e>: edit, <f5>: refresh) " \
+        --border-label " ${git_action_label} in ${repo} (<ctrl+e>: edit, <f5>: refresh) " \
         --padding 0 \
         --footer-label " File Stats " \
         --input-label ' Choose file ' \
