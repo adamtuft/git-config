@@ -1,39 +1,203 @@
 #! /usr/bin/env bash
 
-# Interactively view changed files, both staged and unstaged,
-# with fzf's preview. Use <enter> to edit a file in nvim, and
-# <f5> to refresh the list and preview
-
+branch_glyph=''
+div=$' │ '
 repo="$(git rev-parse --show-toplevel)"
-head="$(git rev-parse HEAD)"
+head="$(git rev-parse --short HEAD)"
+branch="$(git rev-parse --abbrev-ref HEAD)"
+last="$(git --no-pager log --format='%Cgreen%h%Creset: %s' -n 1 HEAD)"
 filter="$(git config --global interactive.difffilter)"
-git_action_label="${1:-Staged and unstaged changes}"
+title="${1}${1:+$div}${branch_glyph} ${branch}${div}${last}"
+optfile="${TMPDIR:-/tmp}/git-diff-interactive.$$.sh"
+cat << EOF > "$optfile"
+# temp file sourced by git-diff-interactive
+join() { IFS=\$1; shift; echo "\$*"; }
+gdi_show_staged=y
+gdi_show_unstaged=y
+gdi_show_untracked=y
+gdi_debug_variables=n
+EOF
 
-git diff --relative --name-only HEAD \
-    | fzf --preview "git diff --color=always HEAD -- {1} | ${filter:-less -R}" \
-        --reverse \
-        --multi \
-        --preview-window=right,75%,wrap \
-        --style full \
-        --bind 'ctrl-e:execute(nvim {})' \
-        --bind 'f5:reload(git diff --relative --name-only HEAD)' \
-        --bind 'result:transform-list-label:
-        if [[ -z $FZF_QUERY ]]; then
-          echo " $FZF_MATCH_COUNT items "
-        else
-          echo " $FZF_MATCH_COUNT matches for [$FZF_QUERY] "
-        fi' \
-        --bind 'focus:transform-footer:git diff --color=always --stat HEAD -- {} | tail -n1 | cut -d, -f 2- || echo "No file selected"' \
-        --bind "focus:+transform-preview-label:[[ -n {} ]] && printf ' Changes vs. HEAD ($head) '" \
-        --border \
-        --border-label " ${git_action_label} in ${repo} (<ctrl+e>: edit, <f5>: refresh) " \
-        --padding 0 \
-        --footer-label " File Stats " \
-        --input-label ' Choose file ' \
-        --color 'border:#aaaaaa,label:#cccccc' \
-        --color 'preview-border:#9999cc,preview-label:#ccccff' \
-        --color 'list-border:#669966,list-label:#99cc99' \
-        --color 'input-border:#996666,input-label:#ffcccc' \
-        --color 'footer-border:#6699cc,footer-label:#99ccff'
+LOAD_STATE="[[ -r '${optfile}' ]] && source '${optfile}'"
 
+LIST_STAGED='git diff --name-only --cached | sed "s/^.*$/S\x00&/g" '
+LIST_UNSTAGED='git diff --name-only | sed "s/^.*$/U\x00&/g" '
+LIST_UNTRACKED='git ls-files --others --exclude-standard | sed "s/^.*$/?\x00&/g" '
 
+DIFF="
+$LOAD_STATE
+[[ \$gdi_show_staged == 'y' ]] && $LIST_STAGED
+[[ \$gdi_show_unstaged == 'y' ]] && $LIST_UNSTAGED
+[[ \$gdi_show_untracked == 'y' ]] && $LIST_UNTRACKED || :
+"
+
+PRINT_FILE_STATS="
+state={1}
+file=\"${repo}/{r2}\"
+if [[ -z \"\${file}\" ]]; then
+    echo '<no file selected>'
+elif [[ \$state == '?' ]]; then
+    # file is untracked
+    echo '<new file>'
+elif [[ \$state == 'S' ]]; then
+    # file is staged, get cached diff
+    printf 'staged:'
+    git diff --color=always --stat --cached -- \"\${file}\" | tail -n1 | cut -d, -f 2-
+elif [[ \$state == 'U' ]]; then
+    # want unstaged diff
+    printf 'unstaged:'
+    git diff --color=always --stat -- \"\${file}\" | tail -n1 | cut -d, -f 2-
+else
+    printf 'ERROR: invalid state!'
+fi
+"
+
+PRINT_PREVIEW_LABEL="
+if [[ -n {2} ]]; then
+    stats=\"\$(${PRINT_FILE_STATS})\"
+    if [[ -n \"\$stats\" ]]; then
+        printf '┤ %s ├' \"\${stats}\"
+    fi
+fi
+"
+
+PRINT_UNTRACKED_FILELS="git -C '$repo' ls-files --others --exclude-standard"
+
+PRINT_SHOWING="
+$LOAD_STATE
+show=()
+for state in staged unstaged untracked; do
+    v=gdi_show_\$state
+    [[ \${!v} == 'y' ]] && show+=(\$state)
+done
+showing=\"\$( join + \${show[*]} )\"
+if [[ \"\${#show[@]}\" == '0' ]]; then
+    echo '┤ <nothing to show> ├'
+else
+    printf '┤ Showing: %s ├' \"\$showing\"
+fi
+"
+
+TOGGLE_STAGED="
+$LOAD_STATE
+[[ \$gdi_show_staged == 'y' ]] && gdi_show_staged=n || gdi_show_staged=y
+sed -i \"s/^gdi_show_staged=.*\$/gdi_show_staged=\$gdi_show_staged/\" '${optfile}'
+echo 'trigger(ctrl-r)+trigger(focus)'
+"
+
+TOGGLE_UNSTAGED="
+$LOAD_STATE
+[[ \$gdi_show_unstaged == 'y' ]] && gdi_show_unstaged=n || gdi_show_unstaged=y
+sed -i \"s/^gdi_show_unstaged=.*\$/gdi_show_unstaged=\$gdi_show_unstaged/\" '${optfile}'
+echo 'trigger(ctrl-r)+trigger(focus)'
+"
+
+TOGGLE_UNTRACKED="
+$LOAD_STATE
+[[ \$gdi_show_untracked == 'y' ]] && gdi_show_untracked=n || gdi_show_untracked=y
+sed -i \"s/^gdi_show_untracked=.*\$/gdi_show_untracked=\$gdi_show_untracked/\" '${optfile}'
+echo 'trigger(ctrl-r)+trigger(focus)'
+"
+
+TOGGLE_DEBUG_VARIABLES="
+$LOAD_STATE
+[[ \$gdi_debug_variables == 'y' ]] && value=n || value=y
+sed -i \"s/^gdi_debug_variables=.*\$/gdi_debug_variables=\$value/\" '${optfile}'
+echo 'trigger(focus)'
+"
+
+TOGGLE_SELECT_ALL='
+if [[ "$FZF_SELECT_COUNT" == "0" ]]; then
+    echo "select-all"
+else
+    echo "deselect-all"
+fi
+'
+
+PRINT_FOOTER="
+$LOAD_STATE
+if [[ \"\$gdi_debug_variables\" == 'y' ]]; then
+    printenv | grep -E '(^FZF_|^gdi_)' | sort
+fi
+printf '<ctrl-e>:     show nvim\n'
+printf '<ctrl-r>:     refresh list\n'
+printf '<shift-tab>:  toggle all\n'
+printf '<alt-1>:      toggle staged\n'
+printf '<alt-2>:      toggle unstaged\n'
+printf '<alt-3>:      toggle untracked\n'
+printf '<alt-d>:      debug variables\n'
+"
+
+PRINT_PREVIEW="
+state={1}
+file=\"${repo}/{r2}\"
+if [[ \$state == '?' ]]; then
+    # file is untracked
+    bat --style numbers,header-filename,header-filesize --color always --paging always \"\${file}\"
+elif [[ \$state == 'S' ]]; then
+    # file is staged, get cached diff
+    git diff --color=always --cached -- \"\${file}\" | ${filter:-less -R}
+elif [[ \$state == 'U' ]]; then
+    # file is unstaged
+    git diff --color=always -- \"\${file}\" | ${filter:-less -R}
+else
+    printf 'ERROR: dont know what state file is in!\n'
+    printf 'file:    %s\n' \"\$file\"
+    printf 'state:   %s\n' \"\$state\"
+fi
+"
+
+OPEN_IN_NVIM="
+files=({+2})
+for f in \"\${files[@]}\"; do
+    absfile=\"${repo}/\$f\"
+    absfiles+=(\"\$absfile\")
+done
+if [[ -n '${TMUX}' ]]; then
+    # start in tmux popup
+    tmux display-popup -E -d '${repo}' -h 75% -w 75% -b heavy nvim \"\${absfiles[@]}\"
+else
+    nvim \"\${absfiles[@]}\"
+fi
+"
+
+fzf --preview "$PRINT_PREVIEW" \
+    --ansi \
+    --reverse \
+    --cycle \
+    --multi \
+    --delimiter '\x00' \
+    --with-nth '{1}: {2}' \
+    --accept-nth '{2}' \
+    --border 'rounded' \
+    --style full \
+    --preview-border 'rounded' \
+    --preview-label-pos '-3' \
+    --input-border 'rounded' \
+    --input-label-pos 3 \
+    --footer-border 'rounded' \
+    --footer-label ' Bindings ' \
+    --footer-label-pos 3 \
+    --footer "FOOTER" \
+    --info 'inline' \
+    --preview-window=right,75%,wrap \
+    --border-label "┤ ${title} ├" \
+    --padding 0 \
+    --bind "ctrl-e:execute${TMUX:+-silent}($OPEN_IN_NVIM)" \
+    --bind "start:trigger(focus)+reload($DIFF)" \
+    --bind "ctrl-r,f5:reload($DIFF)" \
+    --bind "focus:transform-preview-label:$PRINT_PREVIEW_LABEL" \
+    --bind "focus:+transform-footer:$PRINT_FOOTER" \
+    --bind "focus:+transform-input-label:$PRINT_SHOWING" \
+    --bind "alt-1:transform:$TOGGLE_STAGED" \
+    --bind "alt-2:transform:$TOGGLE_UNSTAGED" \
+    --bind "alt-3:transform:$TOGGLE_UNTRACKED" \
+    --bind "alt-d:transform:$TOGGLE_DEBUG_VARIABLES" \
+    --bind "shift-tab:transform:$TOGGLE_SELECT_ALL" \
+    --bind "shift-tab:+trigger(focus)" \
+    --color 'border:#cccccc:bold,label:#cccccc:bold' \
+    --color 'preview-border:#ccccff:regular,preview-label:#ccccff:regular' \
+    --color 'footer-border:#6699cc,footer-label:#99ccff' \
+    --color 'input-border:regular,input-label:regular,input-label:#00ff00:#84c757,input-border:#84c757' \
+
+rm -f "$optfile" &>/dev/null
