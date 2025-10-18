@@ -22,7 +22,7 @@ LOAD_STATE="[[ -r '${optfile}' ]] && source '${optfile}'"
 
 LIST_STAGED='git diff --name-only --cached | sed "s/^.*$/S\x00&/g" '
 LIST_UNSTAGED='git diff --name-only | sed "s/^.*$/U\x00&/g" '
-LIST_UNTRACKED='git ls-files --others --exclude-standard | sed "s/^.*$/?\x00&/g" '
+LIST_UNTRACKED="git -C '${repo}' ls-files --others --exclude-standard | sed \"s/^.*$/?\\x00&/g\" "
 
 DIFF="
 $LOAD_STATE
@@ -173,13 +173,14 @@ fzf --preview "$PRINT_PREVIEW" \
     --style full \
     --preview-border 'rounded' \
     --preview-label-pos '-3' \
-    --input-border 'rounded' \
-    --input-label-pos 3 \
+    --input-border 'none' \
+    --list-label-pos 3 \
     --footer-border 'rounded' \
-    --footer-label ' Bindings ' \
+    --footer-label '┤ Bindings ├' \
     --footer-label-pos 3 \
     --footer "FOOTER" \
-    --info 'inline' \
+    --info 'inline-right' \
+    --no-separator \
     --preview-window=right,75%,wrap \
     --border-label "┤ ${title} ├" \
     --padding 0 \
@@ -188,7 +189,7 @@ fzf --preview "$PRINT_PREVIEW" \
     --bind "ctrl-r,f5:reload($DIFF)" \
     --bind "focus:transform-preview-label:$PRINT_PREVIEW_LABEL" \
     --bind "focus:+transform-footer:$PRINT_FOOTER" \
-    --bind "focus:+transform-input-label:$PRINT_SHOWING" \
+    --bind "focus:+transform-list-label:$PRINT_SHOWING" \
     --bind "alt-1:transform:$TOGGLE_STAGED" \
     --bind "alt-2:transform:$TOGGLE_UNSTAGED" \
     --bind "alt-3:transform:$TOGGLE_UNTRACKED" \
@@ -197,7 +198,7 @@ fzf --preview "$PRINT_PREVIEW" \
     --bind "shift-tab:+trigger(focus)" \
     --color 'border:#cccccc:bold,label:#cccccc:bold' \
     --color 'preview-border:#ccccff:regular,preview-label:#ccccff:regular' \
-    --color 'footer-border:#6699cc,footer-label:#99ccff' \
+    --color 'footer-border:#6699cc,footer-label:#6699cc' \
     --color 'input-border:regular,input-label:regular,input-label:#00ff00:#84c757,input-border:#84c757' \
 
 rm -f "$optfile" &>/dev/null
