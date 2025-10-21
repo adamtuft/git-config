@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-git log --color=always --format="format:%Cgreen%h%Creset %C(cyan)<%as>%Creset%C(Yellow)|%-d|%Creset%s" |
+git log $@ --color=always --format="format:%Cgreen%h%Creset %C(cyan)<%as>%Creset%C(Yellow)|%-d|%Creset%s" |
     tr -s '|' |
     perl -0 -pe 's/\n/\0/gm' |
     sed 's/|/\n/g;/^[[:space:]]*$/d;s/^ //g;s/\n /\n/g' |
@@ -17,7 +17,7 @@ git log --color=always --format="format:%Cgreen%h%Creset %C(cyan)<%as>%Creset%C(
         --footer-border=line \
         --margin 0 \
         --padding 1 \
-        --border-label " Git Log History (?: toggle view) " \
+        --border-label " git log $* (?: toggle view) " \
         --gap 1 \
         --gap-line $'\u00b7' \
         --bind "focus:transform-footer(git diff-tree --no-commit-id --name-only {1} -r | head -n 30)" \
@@ -29,6 +29,6 @@ git log --color=always --format="format:%Cgreen%h%Creset %C(cyan)<%as>%Creset%C(
         --color "bg:#090C0C" \
         --color "footer:#ffffff:italic" \
         --highlight-line \
-        --marker-multi-line '╔║╚' \
+        --marker-multi-line '┏┃┗' \
         --accept-nth=1 \
 
