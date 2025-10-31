@@ -35,6 +35,8 @@ git_list_files_in_commit() {
 }
 export -f git_list_files_in_commit
 
+[[ -n "$file" ]] && LIST_LABEL=" <alt-enter>: view, <alt-d>: diff vs. now "
+
 fzf \
     --read0 \
     --ansi \
@@ -45,17 +47,20 @@ fzf \
     --preview "git show --color=always {1} -- ${file}" \
     --border rounded \
     --preview-window=right,75%,wrap,border-line \
-    --footer-border=line \
+    --style full \
     --margin 0 \
-    --padding 1 \
+    --padding 0 \
+    --list-label "$LIST_LABEL" \
+    --list-label-pos "bottom" \
     --border-label " git log${args:+ }${args[*]} ${file:+-- $file }(?: toggle view) " \
     --gap 1 \
-    --gap-line $'\u00b7' \
+    --gap-line '╍' \
     --bind "start:reload( git_log $* )" \
     --bind "focus:transform-footer(git_list_files_in_commit {1} | head -n 30)" \
     --bind "focus:+transform-footer-label(git_list_files_in_commit {1} | wc -l | xargs printf ' %d files ')" \
     --bind "?:change-preview-window(bottom,75%,wrap|right,75%,wrap)" \
-    --bind "alt-enter:execute([[ -n '$file' ]] && install -D <(git show {r1}:./${file}) ${glhdir}/{r1}.d/${file} && nvim -d ${glhdir}/{r1}.d/${file} ${file} || :)" \
+    --bind "alt-enter:execute([[ -n '$file' ]] && install -D <(git show {r1}:./${file}) ${glhdir}/{r1}.d/${file} && nvim ${glhdir}/{r1}.d/${file} || :)" \
+    --bind "alt-d:execute([[ -n '$file' ]] && install -D <(git show {r1}:./${file}) ${glhdir}/{r1}.d/${file} && nvim -d ${glhdir}/{r1}.d/${file} ${file} || :)" \
     --color "border:#526760" \
     --color "label:#ffffff:bold" \
     --color "bg:#232136" \
