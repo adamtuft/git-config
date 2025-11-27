@@ -1,0 +1,44 @@
+#! /usr/bin/env bash
+
+if [[ -r ~/.bashrc.d/fzf-git.sh ]] then
+    source ~/.bashrc.d/fzf-git.sh
+else
+    printf "fzf completions file missing" >&2
+    exit 2
+fi
+
+if [[ "$1" == --open ]] then
+    shift
+    open=1
+fi
+
+remote="$1"
+commit="$2"
+
+if [[ -z "$remote" ]] then
+    remote="$(_fzf_git_remotes --select-1)"
+fi
+
+url="$(git config --get remote.${remote}.url)"
+url="${url#git@}"
+url="${url%.git}"
+url="www.${url//:/\/}"
+
+if [[ -z "$commit" ]] then
+    commit="$(_fzf_git_hashes)"
+fi
+
+if [[ -n "$commit" ]] then
+    file="$(git ls-tree -r --full-name --name-only "$commit" \|
+        fzf \
+            --reverse \
+            --preview="PAGER=cat git show ${commit}:\${1} | bat --color=always --style=plain"
+    )"
+    printf "%s/blob/%s\n" "$url" "$commit${commit:+/}$file"
+else
+    printf "%s\n" "$url"
+fi
+
+if [[ -n "$open" ]] then
+    xdg-open "$url"
+fi
