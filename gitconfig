@@ -22,6 +22,8 @@
     vis = !gitk
     au = add -u
     upstream = "!f() { git for-each-ref --format='%(upstream:short)' \"$(git symbolic-ref -q HEAD)\"; } && f"
+    url = "!f() { git remote -v | head -n 1 | sed -nr -e 's;:;/;g' -e \"s;^.*git@(.*).git.*\\$;\\1;p\" ; } && f"
+    view-web = "!f() { git url | xargs xdg-open ; } && f"
 [filter "lfs"]
     process = git-lfs filter-process
     required = true
