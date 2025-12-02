@@ -22,7 +22,7 @@ fi
 url="$(git config --get remote.${remote}.url)"
 url="${url#git@}"
 url="${url%.git}"
-url="www.${url//:/\/}"
+url="https://www.${url//:/\/}"
 
 if [[ -z "$commit" ]] then
     commit="$(_fzf_git_hashes)"
