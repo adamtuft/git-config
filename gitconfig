@@ -10,7 +10,8 @@
     d = diff-interactive
     ds = diff --staged
     f = fetch
-    fa = "!f() { git status --porcelain=v2 | grep \"^1 .M\" | awk \"{ print \\$9 }\" | fzf --reverse --height 10 --multi | xargs git add; } && f"
+    # Add from list of modified files
+    fa = "!f() { git status --porcelain=v2 | ( grep \"^1 .M\" | awk \"{ print \\$9 }\" && git ls-files --others --exclude-standard ) | fzf --reverse --height 30 --multi --prompt 'Add modified > ' --preview 'git diff --color=always {}' | xargs git add; } && f"
     # Interactive rebase since a fuzzily-chosen commit
     frbi = "!f() { git fuzzy-rebase $@ ; } && f"
     # Restore a fuzzily-chosen file
