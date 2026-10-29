@@ -16,8 +16,7 @@ normalise_hook_script()
 install_hook()
 {
     local hook="$1"
-    local repo="$2"
-    local repohooks="${2}/.git/hooks"
+    local repohooks="$2"
     local desthook="${repohooks}/${hook}"
     if [[ -f "${desthook}" ]]; then
         echo "Error: ${hook} already exists" >&2
@@ -32,10 +31,10 @@ install_hook()
     echo -n "installed: " && stat --format="%N" "${desthook}"
 }
 
-repo_root="$(git show-submodule-root)"
+hooksdir="$(git rev-parse --git-path hooks | xargs realpath)"
 read -r -a hooks <<< "$@"
 
-printf "install hooks to %s/.git/hooks\n" "${repo_root}"
+printf "install hooks to %s\n" "${hooksdir}"
 for hook in "${hooks[@]}"; do
-    install_hook "${hook}" "${repo_root}"
+    install_hook "${hook}" "${hooksdir}"
 done
