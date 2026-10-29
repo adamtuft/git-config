@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+set -euo pipefail
+
+# Get the superproject while we're in a submodule
+# When no longer in a submodule, show toplevel
+curdir="$PWD"
+nextdir="$PWD"
+while [[ -n "$nextdir" ]]; do
+    nextdir="$(git -C "${curdir}" rev-parse --show-superproject-working-tree 2>/dev/null || true)"
+    [[ -n "$nextdir" ]] && curdir="$nextdir"
+done
+
+git -C "${curdir}" rev-parse --show-toplevel

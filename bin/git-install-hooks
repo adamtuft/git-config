@@ -1,0 +1,41 @@
+#! /usr/bin/env bash
+
+set -euo pipefail
+
+list_available_hooks()
+{
+    find ~/.config/git/hooks/ -executable -type f
+}
+
+normalise_hook_script()
+{
+    declare -n hookvar="$1"
+    hookvar=~/.config/git/hooks/$hookvar
+}
+
+install_hook()
+{
+    local hook="$1"
+    local repo="$2"
+    local repohooks="${2}/.git/hooks"
+    local desthook="${repohooks}/${hook}"
+    if [[ -f "${desthook}" ]]; then
+        echo "Error: ${hook} already exists" >&2
+        return 1
+    fi
+    normalise_hook_script hook
+    if [[ ! -f "$hook" ]]; then
+        echo "Error: no such hook ${hook}" >&2
+        return 1
+    fi
+    ln -s "${hook}" "${desthook}"
+    echo -n "installed: " && stat --format="%N" "${desthook}"
+}
+
+repo_root="$(git show-submodule-root)"
+read -r -a hooks <<< "$@"
+
+printf "install hooks to %s/.git/hooks\n" "${repo_root}"
+for hook in "${hooks[@]}"; do
+    install_hook "${hook}" "${repo_root}"
+done
