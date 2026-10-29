@@ -42,7 +42,7 @@ require_agent_model_id_in_env()
     fi
 }
 
-commit_message_is_valid()
+commit_message_has_valid_subject()
 {
     local msgfile="$1"
     local types="$(IFS='|'; echo "${COMMIT_TYPES[*]}")"
@@ -52,8 +52,19 @@ commit_message_is_valid()
         printf "%s\n" "${COMMIT_TYPES[@]}"
         return 1
     fi
+}
+
+commit_message_has_valid_body()
+{
+    local msgfile="$1"
     if (( $(tail -n +3 "$msgfile" | grep -c '.') == 0 )); then
         echo "Error: bad commit message: message body must contain a description of *why* these changes were made."
         return 1
     fi
+}
+
+commit_message_is_valid()
+{
+    local msgfile="$1"
+    commit_message_has_valid_subject "$msgfile" && commit_message_has_valid_body "$msgfile"
 }
